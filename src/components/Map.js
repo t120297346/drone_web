@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 import { Input, Button} from "antd";
 import "antd/dist/antd.css";
-import logo from "./icon/map_market.svg";
 
 export default class Map extends Component {
   mapRef = React.createRef();
@@ -17,33 +16,16 @@ export default class Map extends Component {
   }
 
   componentDidMount() {
-    const H = window.H;
-    const platform = new H.service.Platform({
-      apikey: "i7G4jk5vgdGCCxMHjjfqh7mBR8CKGNn_-5qTXhVOJ-A",
-    });
-
-    const defaultLayers = platform.createDefaultLayers();
+    const google = window.google;
 
     // Create an instance of the map
-    const map = new H.Map(
-      this.mapRef.current,
-      defaultLayers.vector.normal.map,
-      {
-        // This map is centered over Europe
-        center: { lat: 25.03, lng: 121.3 },
-        zoom: 10,
-        pixelRatio: window.devicePixelRatio || 1,
-      }
-    );
-    // MapEvents enables the event system
-    // Behavior implements default interactions for pan/zoom (also on mobile touch environments)
-    // This variable is unused and is present for explanatory purposes
-    const behavior = new H.mapevents.Behavior(new H.mapevents.MapEvents(map));
-
-    // Create the default UI components to allow the user to interact with them
-    // This variable is unused
-    const ui = H.ui.UI.createDefault(map, defaultLayers);
-    this.setState({ map });
+    const uluru = { lat: -25.344, lng: 131.036 };
+    // The map, centered at Uluru
+    var map = new google.maps.Map(this.mapRef.current, {
+      zoom: 4,
+      center: uluru,
+    });
+    this.setState({ map: this.map });
   }
 
   componentWillUnmount() {
@@ -59,27 +41,20 @@ export default class Map extends Component {
   }
 
   handleSubmit = () => {
-    const H = window.H;
-    var map = this.state.map;
+    const google = window.google;
 
+    var position = new google.maps.LatLng(this.state.lat, this.state.lng);
+    var map = new google.maps.Map(this.mapRef.current, {
+      zoom: 18,
+      center: position,
+    });
 
-    // Define a variable holding SVG mark-up that defines an icon image:
+    const marker = new google.maps.Marker({
+      position: position,
+      map: map,
+    });
 
-    // Create an icon, an object holding the latitude and longitude, and a marker:
-    var icon = new H.map.Icon(logo, {
-        size: { w: 60, h: 60 },
-      }),
-      coords = { lat: this.state.lat, lng: this.state.lng },
-      marker = new H.map.Marker(coords, { icon: icon });
-
-    console.log(icon);
-    
-    // Add the marker to the map and center the map at the location of the marker:
-    map.addObject(marker);
-    map.setCenter(coords);
-    map.setZoom(19);
-
-    this.setState({map});
+    this.setState({map: this.map});
   }
 
   render() {
