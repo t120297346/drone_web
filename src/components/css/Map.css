@@ -1,8 +1,13 @@
-.map {
-  width: "600px";
-  height: "500px";
-};
+@import '~antd/dist/antd.css';
 
 .corordinate_form_item{
-  margin: 10px;
+  width: 200;
+  margin-left: 10px;
 };
+
+.locate_button {
+  background-color: #0072E3;
+  border-radius: 10px;
+  text-align: center;
+  margin-left: 50px;
+}
