@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Button, Input } from 'antd';
 import 'antd/dist/antd.css';
 import Sidebar from "./Sidebar/Sidebar";
-import styles from "./css/Map.css";
+import "./css/Map.css";
 
 export default function Map(props) {
   const [lat, setLat] = useState(null);
@@ -67,15 +67,16 @@ export default function Map(props) {
     // Set a height on the map so it will display
     <>
       <div style={{ position: "relative", left: "35%" }}>
+        <div className="coordinate_form_item">
         <Input
-          className={styles.corordinate_form_item}
+          className="coordinate_form_item"
           id="Latitude"
           type="text"
           placeholder="Latitude"
           onChange={e => setLat(e.target.value)}
-        />
+        /></div>
         <Input
-          className={styles.corordinate_form_item}
+          className="coordinate_form_item"
           id="Longtitude"
           type="text"
           placeholder="Longtitude"
@@ -83,7 +84,7 @@ export default function Map(props) {
         />
         <Button
           type="primary"
-          className={styles.locate_button}
+          className="locate-button"
           onClick={handleSubmit}
         >
           {' '}Locate{' '}

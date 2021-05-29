@@ -1,6 +1,6 @@
 .NavbarItems {
     background: linear-gradient(90deg, rgb(110, 94, 254) 0%, rgba(73, 63, 256, 1) 100% );
-    height: 80px;
+    height: 70px;
     width: 100%;
     display: flex;
     justify-content: center;
@@ -13,7 +13,7 @@
     justify-self: start;
     cursor: pointer;
     display: flex;
-    margin-top: 20px;
+    margin-top: 17px;
 }
 
 .fa-drone {
