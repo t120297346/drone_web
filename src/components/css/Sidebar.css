@@ -18,8 +18,9 @@
     height: 100vh;
     display: flex;
     justify-content: center;
-    position: fixed;
-    top: 0;
+    flex-direction: row;
+    position: absolute;
+    top: 158px;
     left: -100%;
     transition: 850ms;
 }
@@ -60,7 +61,7 @@
 }
 
 .navbar-toggle {
-    background-color: #060b26;
+    background: #060b26;
     width: 100%;
     height: 80px;
     display: flex;
@@ -70,4 +71,11 @@
 
 span {
     margin-left: 16px;
+}
+
+.arrowIcon{
+    background-color: #060b26;
+    position: "relative";
+    left: "95%";
+    margin:"10px"
 }

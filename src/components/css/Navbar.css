@@ -1,11 +1,11 @@
 .NavbarItems {
     background: linear-gradient(90deg, rgb(110, 94, 254) 0%, rgba(73, 63, 256, 1) 100% );
-    height: 70px;
+    height: 80px;
     width: 100%;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-size: 1.4rem;
+    font-size: 1.2rem;
 }
 
 .navbar-logo {
@@ -13,7 +13,7 @@
     justify-self: start;
     cursor: pointer;
     display: flex;
-    margin-top: 17px;
+    margin-top: 3px;
 }
 
 .fa-drone {
@@ -35,7 +35,6 @@
     width: 70vw;
     justify-content: end;
     margin-right: 2rem;
-    margin-top: 20px;
 }
 
 .nav-links{
