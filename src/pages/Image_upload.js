@@ -1,97 +1,167 @@
 import { React, useState } from 'react';
 import Dropzone from '../components/Dropzone'
-import { FiExternalLink } from "react-icons/fi";
-import { VscLoading } from "react-icons/vsc";
+import { Button, TextField, Typography, CircularProgress } from '@material-ui/core';
+import Card from '@material-ui/core/Card';
+import CardActions from '@material-ui/core/CardActions';
+import CardContent from '@material-ui/core/CardContent';
+import { Alert } from '@material-ui/lab';
+import { makeStyles } from '@material-ui/core/styles';
 
 export default function Image_map() {
     const [image, setImage] = useState(null);
-    const [result, setResult] = useState(null);
+    const [latitude, setLat] = useState(null);
+    const [longtitude, setLng] = useState(null);
+    const [success, setSuccess] = useState(null);
     const [loading, setLoading] = useState(false);
 
     const onResetHandler = () => {
         setImage(null);
-        setResult(null);
-      };
-      const onPredictHandler = () => {
-        // console.log(image);
-        // TODO
-    
-        const url = "http://localhost:5000/predict";
-        setLoading(true);
+        setLat(null);
+        setLng(null)
+        document.getElementById("latitude").value = ''
+        document.getElementById("longtitude").value = ''
+    };
+    const onSubmitHandler = () => {
+      if(!image || !latitude || !longtitude){
+        setSuccess(false)
+      }
+      else{
+        setLoading(true)
+        const url = "http://localhost:5000/image_upload";
+        var data = {
+          "location": {
+            "type": "Point",
+            "cooridnates": [parseFloat(longtitude), parseFloat(latitude)]
+          },
+          "image": image,
+        }
         fetch(url, {
           method: "POST",
-          body: JSON.stringify(image.split(",")[1]),
+          body: JSON.stringify(data),
           headers: new Headers({
             "Content-Type": "application/json",
           }),
         })
-          .then((res) => res.json())
-          .catch((error) => console.error("Error:", error))
-          .then((response) => {
-            console.log("Success:", response.result[0]);
-            setResult(
-              response.result[0]
-                .sort(function (a, b) {
-                  return b[1] - a[1];
-                })
-                .slice(0, 3)
-            );
-            setLoading(false);
-          });
-      };
+        .then((res) => {
+          console.log(res.status)
+          setLoading(null)
+          onResetHandler()
+          setSuccess(true)
+        })
+        .catch((error) => console.error("Error:", error))
+      }
+    };
+
+    const inputStyles = makeStyles((theme) => ({
+      root: {
+        height: "10px",
+        width: "120px",
+        margin: "0 30px 58px 0"
+      },
+    }));
+    const submitbuttonStyles = makeStyles((theme) => ({
+      root:{
+        height: "40px",
+        width: "100px",
+        margin: "16px 0 10px 10px",
+        padding: "0 14px 0 0",
+        position: 'relative',
+        left: '550px'
+      },
+    }));
+    const resetbuttonStyles = makeStyles((theme) => ({
+      root:{
+        height: "40px",
+        width: "100px",
+        margin: "16px 0 10px 10px",
+        padding: "0 14px 0 0",
+        position: 'relative',
+        left: '525px'
+      },
+    }));
+    const cardStyles = makeStyles({
+      root: {
+        borderRadius: 10,
+        marginLeft: 'auto',
+        marginRight: 'auto',
+        marginTop: '20px',
+        width: '800px',
+        boxShadow:"0px 0px 9px #6C6C6C",
+      },
+      bullet: {
+        display: 'inline-block',
+        margin: '0 2px',
+        transform: 'scale(0.8)',
+      },
+      title: {
+        fontWeight: 'bold',
+        fontSize: 22,
+      },
+      pos: {
+        marginBottom: 12,
+      },
+    });
+    const LoadingStyles = makeStyles((theme) => ({
+      root:{
+        position: 'relative',
+         left: '375px',
+        margin: "100px 0 100px ",
+      },
+    }));
+    const input_class = inputStyles();
+    const submit_button_class = submitbuttonStyles();
+    const card_class = cardStyles();
+    const reset_button_class = resetbuttonStyles();
+    const loading_class = LoadingStyles();
 
     return(
         <>
-            <div className="mt-4 w-full">
-                {!image && <Dropzone setImage={setImage} />}
-                {image && !result && !loading && (
+          {(success === true) && <Alert severity="success" onClose={() => setSuccess(null)}>Upload Successfully</Alert>}
+          {(success === false) && <Alert severity="error" onClose={() => setSuccess(null)}>Fill whole form  — <strong>Idiot!!!!!!!!</strong></Alert>}
+          <div className="container">
+            <Card className={card_class.root}>
+              <CardContent>
+                <Typography className={card_class.title} color="textSecondary" gutterBottom>
+                  Image Upload
+                </Typography>
+              </CardContent>
+              <div>
+                <div style={{ marginLeft:'260px'}}>
+                  <TextField className={input_class.root} id='latitude' label="Latitude" variant="outlined" onChange={e => setLat(e.target.value)}/>
+                  <TextField className={input_class.root} id="longtitude" label="Longtitude" variant="outlined" onChange={e => setLng(e.target.value)}/>
+                </div>
+                {!image && !loading && <Dropzone setImage={setImage} />}
+                {image && !loading && (
                     <>
-                    <p className="text-sm uppercase font-medium mb-2">
-                        👇 your image
-                    </p>
-                    <img className="rounded-md w-full" src={image} />
+                      <div style={{position:'relative', left:'300px'}}>
+                        <p style={{position:'relative', left:'35px', marginBottom:"10px"}}>
+                            👇 your image
+                        </p>
+                        <img className="rounded-md w-full" src={image} style={{height:"200px", width:'200px'}}/>
+                      </div>
                     </>
                 )}
-                {loading && (
-                    <>
-                    <VscLoading className="my-4 mx-auto text-gray-500 text-3xl animate-spin" />
-                    </>
-                )}
-                {result && !loading && (
-                    <>
-                    <div className="flex gap-4">
-                        <div className="w-4/12">
-                        <img className="rounded-md w-full" src={image} />
-                        </div>
-                        <div className="flex flex-col justify-between w-8/12">
-                        {result.map((result, index) => (
-                            <div className="flex justify-between">
-                            
-                                <FiExternalLink />
-                            </div>
-                        ))}
-                        </div>
-                    </div>
-                    </>
-                )}
-            </div>  
-        <div className="flex ml-auto mt-4 gap-2">
-        <button
-          type="button"
-          onClick={onResetHandler}
-          class="w-24 transition duration-200 text-md bg-gray-400 rounded-md p-1 items-center justify-center text-white hover:bg-gray-300 focus:outline-none"
-        >
-          Reset
-        </button>
-        {!result && !loading && (
-          <button
-            type="button"
-            onClick={onPredictHandler}
-            class="w-24 transition duration-200 text-md bg-yellow-400 rounded-md p-1 items-center justify-center text-white hover:bg-yellow-300 focus:outline-none"
-          >
-            Predict!
-          </button>
-        )}
+                {loading && <CircularProgress className={loading_class.root}/>}
+              </div>
+              <CardActions>
+                <Button 
+                  className={reset_button_class.root}
+                  color="primary"
+                  variant="contained"
+                  align="justify"
+                  onClick={onResetHandler}>
+                  {" "}Reset{" "}
+                </Button>
+                <Button 
+                  className={submit_button_class.root}
+                  color="primary"
+                  variant="contained"
+                  align="justify"
+                  onClick={onSubmitHandler}>
+                  {" "}Submit{" "}
+                </Button>
+              </CardActions>
+            </Card>
         </div>
       </>
     )

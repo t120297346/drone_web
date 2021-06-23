@@ -18,9 +18,9 @@ export default function Map(props) {
     const google = window.google;
 
     // Create an instance of the map
-    const uluru = new google.maps.LatLng(-25.344, 131.036);
+    const ntu = new google.maps.LatLng(25.016887239107156, 121.53854038997201);
     // The map, centered at Uluru
-    const cur_map = build_interactive_map(uluru);
+    const cur_map = build_interactive_map(ntu);
 
     clearMarkers(prevMarkersRef.current);
 
@@ -42,7 +42,7 @@ export default function Map(props) {
       fillOpacity: 0.35,
       map: map,
       center: latlng,
-      radius: 300,
+      radius: 30,
       editable: true,
     });
   }
@@ -60,7 +60,7 @@ export default function Map(props) {
     }
   }
 
-  let build_interactive_map = (latlng, zoom = 4) => {
+  let build_interactive_map = (latlng, zoom = 16) => {
     const google = window.google;
     const cur_map = new google.maps.Map(document.getElementById("map"), {
       zoom: zoom,
