@@ -1,21 +1,18 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Button, TextField } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
-import { IconContext } from 'react-icons';
-import { Link } from 'react-router-dom';
-import * as  FaIcons from 'react-icons/fa';
+import { ImCross } from "react-icons/im";
 import './css/Sidebar.css'
-import { unstable_renderSubtreeIntoContainer } from "react-dom";
 
 
 export default function Map(props) {
   const [lat, setLat] = useState(null);
   const [lng, setLng] = useState(null);
-  const [sidebar, setSidebar] = useState(false);
+  const [image, setImage] = useState(null);
   let prevMarkersRef = useRef([]);
   let prevCirclesRef = useRef([]);
-  let prevImagedatasRed = useRef([]);
-
+  let prevImagedatasRef = useRef([]);
+  
   useEffect(() => {
     const google = window.google;
 
@@ -24,16 +21,40 @@ export default function Map(props) {
     // The map, centered at Uluru
     const cur_map = build_interactive_map(ntu);
 
-    clearMarkers(prevMarkersRef.current);
+    prevMarkersRef.current = clearRefs(prevMarkersRef.current);
 
   }, [])// eslint-disable-line react-hooks/exhaustive-deps
 
 
   let createMarker = (latlng, map) => {
-    return new window.google.maps.Marker({
+    var marker = new window.google.maps.Marker({
       position: latlng,
       map: map
     });
+  
+    marker.addListener("click", () => {
+      const lat = marker.getPosition().lat()
+      const lng = marker.getPosition().lng()
+      var data = {
+        'coordinates': [parseFloat(lng), parseFloat(lat)]
+      }
+      var url = 'http://localhost:5000/get_image'
+      fetch(url, {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: new Headers({
+          "Content-Type": "application/json",
+        }),
+      })
+      .then((res) => {
+        return res.json();
+      })
+      .catch((error) => console.error("Error:", error))
+      .then((response) => {
+        setImage(response[0])
+      })
+    });
+    return marker;
   }
 
   let createCircle = (latlng, map) => {
@@ -48,24 +69,20 @@ export default function Map(props) {
       radius: 30,
       editable: true,
     });
-    filter_range_image(latlng.lat(), latlng.lng(), cir.getRadius())
+    filter_range_image(latlng.lat(), latlng.lng(), cir.getRadius(), map)
     return cir
   }
 
-  // Removes the markers from the map.
-  let clearMarkers = (markers) => {
+  // Removes the items from the map.
+  let clearRefs = (markers) => {
     for (let m of markers) {
       m.setMap(null);
     }
-  }
-  // Removes the circles from the map.
-  let clearCircles = (circles) => {
-    for (let c of circles) {
-      c.setMap(null);
-    }
+    markers = []
+    return markers;
   }
 
-  let filter_range_image = (lat, lng, radius) => {
+  let filter_range_image = (lat, lng, radius, map) => {
     const url = "http://localhost:5000/compare_radius";
     var data = {
       'origin':{
@@ -87,10 +104,13 @@ export default function Map(props) {
     .catch((error) => console.error("Error:", error))
     .then((response) => {
       if (response.length > 0){
-        console.log(response[0].location.coordinates)
-      }
-      else{
-        console.log('no data')
+        prevImagedatasRef.current = clearRefs(prevImagedatasRef.current)
+        for(var i = 0; i < response.length; i++){
+          var lat = response[i].coordinates[1]
+          var lng = response[i].coordinates[0]
+          var img_data = createMarker({lat: lat, lng: lng}, map)
+          prevImagedatasRef.current.push(img_data);
+        }
       }
     })
   }
@@ -108,14 +128,15 @@ export default function Map(props) {
   let addMapListener = (map) => {
     const google = window.google;
     map.addListener("click", (e) => {
-      setSidebar(true);
+      prevMarkersRef.current = clearRefs(prevMarkersRef.current);
+      prevCirclesRef.current = clearRefs(prevCirclesRef.current);
+      prevImagedatasRef.current = clearRefs(prevImagedatasRef.current);
+
       const marker = createMarker(e.latLng, map);
       const cir = createCircle(e.latLng, map);
       google.maps.event.addListener(cir, "radius_changed", () => {
-        filter_range_image(e.latLng.lat(), e.latLng.lng(), cir.getRadius())
+        filter_range_image(e.latLng.lat(), e.latLng.lng(), cir.getRadius(), map)
       });
-      clearMarkers(prevMarkersRef.current);
-      clearCircles(prevCirclesRef.current);
       prevMarkersRef.current.push(marker);
       prevCirclesRef.current.push(cir);
     });
@@ -126,7 +147,7 @@ export default function Map(props) {
     var position = new google.maps.LatLng(lat, lng);
     const cur_map = build_interactive_map(position, 18);
     const marker = createMarker(position, cur_map);
-    clearMarkers(prevMarkersRef.current);
+    prevMarkersRef.current = clearRefs(prevMarkersRef.current);
     prevMarkersRef.current.push(marker);
   }
   
@@ -148,15 +169,33 @@ export default function Map(props) {
     },
   }));
 
-  let arrowIcon = {
-    height: "30px",
-    width: "30px",
-    position: "relative",
-    left: "100%",
-    backgroundColor:"#060b26"
+  let image_data = {
+    position: 'absolute',
+    top: '0px',
+    left: '0px',
+    height: "100vh",
+    width: "100%",
+    backgroundColor:"#272727",
+    zIndex: 120,
   }
 
-  const showSidebar = () => {setSidebar(!sidebar);        console.log(sidebar)}
+  let image_style = {
+    display: 'block',
+    maxWidth:'50%',
+    height:'auto',
+    marginLeft:'auto',
+    marginRight:'auto',
+    marginTop: '90px'
+  }
+
+  let cross_icon_style = {
+    position: "absolute",
+    left: "97%",
+    color: "#FFFFFF",
+    height: "20px",
+    width: "20px",
+    marginTop: "20px"
+  }
 
   const input_class = inputStyles();
   const button_class = buttonStyles();
@@ -178,20 +217,14 @@ export default function Map(props) {
       </div>
       <div>
         <div id="map" style={{height: "500px", zIndex: "60"}}/>
-        <>
-          <IconContext.Provider value={{color: '#fff'}}>
-            <nav key={props.active} className={sidebar ? 'sidebar-menu active':'sidebar-menu'} style={{height: "500px", zIndex: "100"}}>
-                <ul className="nav-menu-items">
-                    <li>
-                        <Link to="#" className="menu-bars">
-                            <FaIcons.FaArrowLeft onClick={showSidebar} style={arrowIcon}/>
-                        </Link>
-                    </li>
-                </ul>
-            </nav>
-          </IconContext.Provider>
-        </>
+      </div>
+      {image && (
+        <div style={image_data}>
+          <ImCross style={cross_icon_style} onClick={() => {setImage(null)}}/>
+          <img className="rounded-md w-full" src={image} style={image_style}/>
         </div>
+      )}
+
     </>
   );
 }
