@@ -5,6 +5,7 @@ import { IconContext } from 'react-icons';
 import { Link } from 'react-router-dom';
 import * as  FaIcons from 'react-icons/fa';
 import './css/Sidebar.css'
+import { unstable_renderSubtreeIntoContainer } from "react-dom";
 
 
 export default function Map(props) {
@@ -13,6 +14,7 @@ export default function Map(props) {
   const [sidebar, setSidebar] = useState(false);
   let prevMarkersRef = useRef([]);
   let prevCirclesRef = useRef([]);
+  let prevImagedatasRed = useRef([]);
 
   useEffect(() => {
     const google = window.google;
@@ -26,6 +28,7 @@ export default function Map(props) {
 
   }, [])// eslint-disable-line react-hooks/exhaustive-deps
 
+
   let createMarker = (latlng, map) => {
     return new window.google.maps.Marker({
       position: latlng,
@@ -34,7 +37,7 @@ export default function Map(props) {
   }
 
   let createCircle = (latlng, map) => {
-    return new window.google.maps.Circle({
+    var cir = new window.google.maps.Circle({
       strokeColor: "#FF0000",
       strokeOpacity: 0.8,
       strokeWeight: 2,
@@ -45,6 +48,8 @@ export default function Map(props) {
       radius: 30,
       editable: true,
     });
+    filter_range_image(latlng.lat(), latlng.lng(), cir.getRadius())
+    return cir
   }
 
   // Removes the markers from the map.
@@ -58,6 +63,36 @@ export default function Map(props) {
     for (let c of circles) {
       c.setMap(null);
     }
+  }
+
+  let filter_range_image = (lat, lng, radius) => {
+    const url = "http://localhost:5000/compare_radius";
+    var data = {
+      'origin':{
+        'type': 'Point',
+        'coordinates': [parseFloat(lng), parseFloat(lat)]
+      },
+      'radius': parseFloat(radius)
+    }
+    fetch(url, {
+      method: "POST",
+      body: JSON.stringify(data),
+      headers: new Headers({
+        "Content-Type": "application/json",
+      }),
+    })
+    .then((res) => {
+      return res.json();
+    })
+    .catch((error) => console.error("Error:", error))
+    .then((response) => {
+      if (response.length > 0){
+        console.log(response[0].location.coordinates)
+      }
+      else{
+        console.log('no data')
+      }
+    })
   }
 
   let build_interactive_map = (latlng, zoom = 16) => {
@@ -76,7 +111,9 @@ export default function Map(props) {
       setSidebar(true);
       const marker = createMarker(e.latLng, map);
       const cir = createCircle(e.latLng, map);
-      google.maps.event.addListener(cir, "radius_changed", () => {console.log(cir.getRadius())});
+      google.maps.event.addListener(cir, "radius_changed", () => {
+        filter_range_image(e.latLng.lat(), e.latLng.lng(), cir.getRadius())
+      });
       clearMarkers(prevMarkersRef.current);
       clearCircles(prevCirclesRef.current);
       prevMarkersRef.current.push(marker);

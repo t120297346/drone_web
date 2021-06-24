@@ -31,7 +31,7 @@ export default function Image_map() {
         var data = {
           "location": {
             "type": "Point",
-            "cooridnates": [parseFloat(longtitude), parseFloat(latitude)]
+            "coordinates": [parseFloat(longtitude), parseFloat(latitude)]
           },
           "image": image,
         }
